@@ -3,7 +3,7 @@ import pandas as pd
 
 
 def load_txt_file(file_number):
-    """
+    '''
     Load a graph description text file.
 
     Parameters
@@ -15,20 +15,20 @@ def load_txt_file(file_number):
     -------
     list[str]
         List of lines read from the file, including \n characters.
-    """
+    '''
     with open(f'./graphs/graph_{file_number}.txt') as file:
         lines = file.readlines()
     return lines
 
 
 def parse_graph_file(lines):
-    """
+    '''
     Reads graph informations and edge relations from each file line.
 
     The file format is expected to follow:
         line 1 : number of vertices
         line 2 : number of arcs
-        line 3+ : edges in the form "source_vertex destination_vertex weight"
+        line 3+ : edges in the form 'source_vertex destination_vertex weight'
 
     Parameters
     ----------
@@ -41,19 +41,20 @@ def parse_graph_file(lines):
         - nb_vertices : number of vertices
         - nb_arcs : number of arcs
         - relations : list of edges formatted as [source_vertex, destination_vertex, weight]
-    """
+    '''
     nb_vertices = int(lines[0])
     nb_arcs = int(lines[1])
 
     relations = []
     for line in lines[2:]:
-        relations.append([int(x) for x in line.strip().split()])  # Remove any space or \n
+        # Remove any space or \n
+        relations.append([int(x) for x in line.strip().split()])
     
     return nb_vertices, nb_arcs, relations
 
 
 def adjacency_matrix(nb_vertices, relations):
-    """
+    '''
     Construct the adjacency matrix of a weighted directed graph.
 
     Parameters
@@ -65,46 +66,98 @@ def adjacency_matrix(nb_vertices, relations):
 
     Returns
     -------
-    list[list[int | None]]
+    list[list[int | float]]
         A square adjacency matrix of size nb_vertices * nb_vertices.
         matrix[i][j] contains the edge weight if an edge exists,
-        otherwise None.
-    """
-    matrix = [[None] * nb_vertices for _ in range(nb_vertices)]
-    # Depending on the rest of the program, might be better to put float("inf") instead of None and maybe put diagonal of 0 --> don't forget to change documentation
-    # matrix = [[float("inf")] * nb_vertices for _ in range(nb_vertices)]
-    # for i in range(nb_vertices):
-    #    matrix[i][i] = 0
+        otherwise 'inf'.
+    '''
+    # We use float('inf') for non-existant paths because it is considered as an upper bound
+    matrix = [[float('inf')] * nb_vertices for _ in range(nb_vertices)]
+    for i in range(nb_vertices):
+       matrix[i][i] = 0
     
     for relation in relations:
         i, j, weight = relation
-        matrix[i][j] = weight
+        matrix[i][j] = int(weight)
 
     return matrix
 
 
-def display_matrix(matrix):
-    """
-    Convert an adjacency matrix into a pandas DataFrame for display.
+def format_row(row, row_head, row_header_width, col_widths):
+    '''
+    Format a single row of the adjacency matrix for aligned display.
 
     Parameters
     ----------
-    matrix : list[list[int | None]]
-        Adjacency matrix representation of the graph.
+    row : list[str]
+        The row of the matrix already converted to strings.
+    row_head : str
+        The label of the row (typically the vertex index).
+    row_header_width : int
+        Width reserved for the row header, used for alignment.
+    col_widths : list[int]
+        Width of each column, used to right-align each cell.
 
     Returns
     -------
-    pandas.DataFrame
-        DataFrame representation of the matrix for visualization.
-    """
-    array = np.array(matrix)
-    df = pd.DataFrame(data=array)
+    str
+        A formatted string representing the row, with proper spacing and alignment between columns.
+    '''
+    parts = [row_head.rjust(row_header_width)]
+    for col in range(nb_vertices):
+        parts.append(str(row[col]).rjust(col_widths[col]))
+    return "   ".join(parts)
 
-    print(df)
+
+def display_matrix(matrix, nb_vertices):
+    '''
+    Display a formatted adjacency matrix with aligned rows and columns.
+
+    Parameters
+    ----------
+    matrix : list[list[int | float]]
+        The adjacency matrix to display.
+    nb_vertices : int
+        Number of vertices in the graph, used to generate headers.
+
+    Returns
+    -------
+    None
+    '''
+    headers = [str(i) for i in range(nb_vertices)]
+    str_matrix = [[str(x) for x in row] for row in matrix]
+
+    # Get max length per column
+    col_widths = [
+        max(len(str_matrix[r][col]) for r in range(nb_vertices))
+        for col in range(nb_vertices)
+    ]
+
+    # Get max length between header and values per column
+    for col in range(nb_vertices):
+        col_widths[col] = max(col_widths[col], len(headers[col]))
+
+    # Get the max witho of all headers so that we can later shift the headers to display them at the right place
+    row_header_width = max(len(h) for h in headers)
+
+    # Adjust each header so that it reaches the max length with spaces (on the right)
+    aligned_headers = [
+        headers[col].rjust(col_widths[col])
+        for col in range(nb_vertices)
+    ]
+    print(" " * row_header_width + "   " + "   ".join(aligned_headers))
+
+    for i in range(nb_vertices):
+        print(format_row(row=str_matrix[i], row_head=headers[i], row_header_width=row_header_width, col_widths=col_widths))
+
+
+
+
+
 
 
 if __name__ == '__main__':
     graph_1_lines = load_txt_file(file_number=1)
     nb_vertices, nb_arcs, relations = parse_graph_file(graph_1_lines)
     adjacency_matrix_1 = adjacency_matrix(nb_vertices=nb_vertices, relations=relations)
-    display_matrix(matrix=adjacency_matrix_1)
+    display_matrix(matrix=adjacency_matrix_1, nb_vertices=nb_vertices)
