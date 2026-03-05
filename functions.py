@@ -151,13 +151,84 @@ def display_matrix(matrix, nb_vertices):
         print(format_row(row=str_matrix[i], row_head=headers[i], row_header_width=row_header_width, col_widths=col_widths))
 
 
+def init_matrixes(matrix, nb_vertices, relations):
+    '''
+    Initialize the distance matrix L and predecessor matrix P used by Floyd–Warshall.
+
+    Parameters
+    ----------
+    matrix : list[list[int | float]]
+        The initial adjacency matrix of the graph, where matrix[i][j] contains
+        the weight of the edge i → j, or float('inf') if no edge exists.
+    nb_vertices : int
+        Number of vertices in the graph.
+    relations : list[list[int]]
+        List of edges in the format [source_vertex, destination_vertex, weight].
+
+    Returns
+    -------
+    tuple[list[list[int | float]], list[list[int | None]]]
+        L : the initial distance matrix (same object as `matrix`)
+        P : the predecessor matrix, where P[i][j] = i if an edge i → j exists,
+            otherwise None.
+    '''
+    L = matrix
+    P = [[None] * nb_vertices for _ in range(nb_vertices)]
+
+    # For each direct edge i → j, the predecessor of j is i
+    for relation in relations:
+        i, j, weight = relation
+        P[i][j] = i
+    return L, P
+
+
+def floyd_warshall(matrix, nb_vertices, relations):
+    '''
+    Compute all‑pairs shortest paths using the Floyd–Warshall algorithm.
+
+    Parameters
+    ----------
+    matrix : list[list[int | float]]
+        The adjacency matrix of the graph, where matrix[i][j] contains the
+        weight of the edge i → j, or float('inf') if no edge exists.
+    nb_vertices : int
+        Number of vertices in the graph.
+    relations : list[list[int]]
+        List of edges in the format [source_vertex, destination_vertex, weight].
+        Used to initialize the predecessor matrix.
+
+    Returns
+    -------
+    tuple[list[list[int | float]], list[list[int | None]]]
+        L : the matrix of shortest path distances between all pairs of vertices.
+            After execution, L[i][j] contains the minimum cost from i to j.
+        P : the predecessor matrix used to reconstruct shortest paths.
+            P[i][j] gives the predecessor of j on the shortest path from i to j,
+            or None if no path exists.
+    '''
+    L, P = init_matrixes(matrix, nb_vertices, relations)
+    
+    for k in range(nb_vertices):
+        for i in range(nb_vertices):
+            for j in range(nb_vertices):
+                # Check if path i → k → j is shorter than current i → j
+                if ((L[i][j] == float('inf') or 
+                     L[i][j] > (L[i][k] + L[k][j])) 
+                     and (L[i][k] != float('inf') and L[k][j] != float('inf'))):
+                    # Update shortest distance
+                    L[i][j] = L[i][k] + L[k][j]
+                    # Update predecessor: predecessor of j becomes predecessor of k→j
+                    P[i][j] = P[k][j]
+    return L, P
 
 
 
 
 
 if __name__ == '__main__':
-    graph_1_lines = load_txt_file(file_number=1)
+    graph_1_lines = load_txt_file(file_number=2)
     nb_vertices, nb_arcs, relations = parse_graph_file(graph_1_lines)
+    print(nb_vertices, nb_arcs, relations)
     adjacency_matrix_1 = adjacency_matrix(nb_vertices=nb_vertices, relations=relations)
     display_matrix(matrix=adjacency_matrix_1, nb_vertices=nb_vertices)
+    L, P = floyd_warshall(matrix=adjacency_matrix_1, nb_vertices=nb_vertices, relations=relations)
