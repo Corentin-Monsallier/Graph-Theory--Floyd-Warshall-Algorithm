@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
+import math
 
+INF = math.inf
 
 def load_txt_file(file_number):
     '''
@@ -71,11 +73,12 @@ def adjacency_matrix(nb_vertices, relations):
         matrix[i][j] contains the edge weight if an edge exists,
         otherwise 'inf'.
     '''
-    # We use float('inf') for non-existant paths because it is considered as an upper bound
-    matrix = [[float('inf')] * nb_vertices for _ in range(nb_vertices)]
+    # We use INF for non-existant paths because it is considered as an upper bound
+    matrix = [[INF] * nb_vertices for _ in range(nb_vertices)]
     for i in range(nb_vertices):
        matrix[i][i] = 0
     
+    # Fill the adjacency matrix with the weights from the relations
     for relation in relations:
         i, j, weight = relation
         matrix[i][j] = int(weight)
@@ -103,7 +106,9 @@ def format_row(row, row_head, row_header_width, col_widths):
     str
         A formatted string representing the row, with proper spacing and alignment between columns.
     '''
+    # Right align the row header to the specified width
     parts = [row_head.rjust(row_header_width)]
+    # Right align each cell in the row according to the specified column width
     for col in range(nb_vertices):
         parts.append(str(row[col]).rjust(col_widths[col]))
     return "   ".join(parts)
@@ -159,7 +164,7 @@ def init_matrixes(matrix, nb_vertices, relations):
     ----------
     matrix : list[list[int | float]]
         The initial adjacency matrix of the graph, where matrix[i][j] contains
-        the weight of the edge i → j, or float('inf') if no edge exists.
+        the weight of the edge i → j, or INF if no edge exists.
     nb_vertices : int
         Number of vertices in the graph.
     relations : list[list[int]]
@@ -190,7 +195,7 @@ def floyd_warshall(matrix, nb_vertices, relations):
     ----------
     matrix : list[list[int | float]]
         The adjacency matrix of the graph, where matrix[i][j] contains the
-        weight of the edge i → j, or float('inf') if no edge exists.
+        weight of the edge i → j, or INF if no edge exists.
     nb_vertices : int
         Number of vertices in the graph.
     relations : list[list[int]]
@@ -211,10 +216,10 @@ def floyd_warshall(matrix, nb_vertices, relations):
     for k in range(nb_vertices):
         for i in range(nb_vertices):
             for j in range(nb_vertices):
-                # Check if path i → k → j is shorter than current i → j
-                if ((L[i][j] == float('inf') or 
+                # Check if path i → k → j is shorter than current i → j (with additional check if initial value is INF and if new values not INF)
+                if ((L[i][j] == INF or 
                      L[i][j] > (L[i][k] + L[k][j])) 
-                     and (L[i][k] != float('inf') and L[k][j] != float('inf'))):
+                     and (L[i][k] != INF and L[k][j] != INF)):
                     # Update shortest distance
                     L[i][j] = L[i][k] + L[k][j]
                     # Update predecessor: predecessor of j becomes predecessor of k→j
@@ -222,8 +227,52 @@ def floyd_warshall(matrix, nb_vertices, relations):
     return L, P
 
 
+def is_absorbing():
+    pass
 
 
+def minimum_value_path(i, j, P):
+    '''
+    Reconstruct the minimum‑value path from vertex i to vertex j using the
+    predecessor matrix P produced by the Floyd–Warshall algorithm.
+
+    Parameters
+    ----------
+    i : int
+        Starting vertex.
+    j : int
+        Ending vertex.
+    P : list[list[int | None]]
+        Predecessor matrix where P[i][j] gives the predecessor of j on the
+        shortest path from i, or None if no predecessor exists.
+
+    Returns
+    -------
+    list[int] | None
+        The ordered list of vertices forming the shortest path from i to j.
+        Returns None if no path exists.
+    '''
+    # If the distance is INF, no path exists between i and j
+    if L[i][j] == INF:
+        return None
+    
+    path_list = []
+    current = j
+    
+    # Go backwards from j to i using the predecessor matrix
+    while current is not None:
+        path_list.append(current)
+        if current == i:
+            break
+        # Move to the predecessor of the current vertex
+        current = P[i][current]
+
+    # If there is no predecessor, the path does not exist
+    if current is None:
+        return None
+
+    # Reverse the list to obtain the path from i to j
+    return list(reversed(path_list))
 
 if __name__ == '__main__':
     graph_1_lines = load_txt_file(file_number=2)
@@ -232,3 +281,4 @@ if __name__ == '__main__':
     adjacency_matrix_1 = adjacency_matrix(nb_vertices=nb_vertices, relations=relations)
     display_matrix(matrix=adjacency_matrix_1, nb_vertices=nb_vertices)
     L, P = floyd_warshall(matrix=adjacency_matrix_1, nb_vertices=nb_vertices, relations=relations)
+    print(minimum_value_path(i=0, j=2, P=P))
