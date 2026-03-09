@@ -303,4 +303,4 @@ if __name__ == '__main__':
         print("The graph contains an absorbing circuit.")
     else:
         print("No absorbing circuit detected.")
-        print(minimum_value_path(i=0, j=2, P=P))
+        print(minimum_value_path(initial_vertex=0, final_vertex=2, P=P))
