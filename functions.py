@@ -227,8 +227,25 @@ def floyd_warshall(matrix, nb_vertices, relations):
     return L, P
 
 
-def is_absorbing():
-    pass
+def is_absorbing(L, nb_vertices):
+    '''
+    Detect whether the graph contains an absorbing circuit
+    (negative weight cycle) using the Floyd–Warshall result.
+
+    Parameters
+    ----------
+    L : list[list[int | float]]
+        Distance matrix returned by Floyd-Warshall.
+
+    Returns
+    -------
+    bool
+        True if an absorbing circuit exists, False otherwise.
+    '''
+    for i in range(nb_vertices):
+        if L[i][i] < 0:
+            return True 
+    return False
 
 
 def minimum_value_path(i, j, P):
@@ -275,10 +292,14 @@ def minimum_value_path(i, j, P):
     return list(reversed(path_list))
 
 if __name__ == '__main__':
-    graph_1_lines = load_txt_file(file_number=2)
+    graph_1_lines = load_txt_file(file_number=3)
     nb_vertices, nb_arcs, relations = parse_graph_file(graph_1_lines)
     print(nb_vertices, nb_arcs, relations)
     adjacency_matrix_1 = adjacency_matrix(nb_vertices=nb_vertices, relations=relations)
     display_matrix(matrix=adjacency_matrix_1, nb_vertices=nb_vertices)
     L, P = floyd_warshall(matrix=adjacency_matrix_1, nb_vertices=nb_vertices, relations=relations)
-    print(minimum_value_path(i=0, j=2, P=P))
+    if is_absorbing(L=L, nb_vertices=nb_vertices):
+        print("The graph contains an absorbing circuit.")
+    else:
+        print("No absorbing circuit detected.")
+        print(minimum_value_path(i=0, j=2, P=P))
