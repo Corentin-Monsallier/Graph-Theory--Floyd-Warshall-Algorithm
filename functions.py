@@ -248,7 +248,7 @@ def is_absorbing(L, nb_vertices):
     return False
 
 
-def minimum_value_path(i, j, P):
+def minimum_value_path(initial_vertex, final_vertex, P):
     '''
     Reconstruct the minimum‑value path from vertex i to vertex j using the
     predecessor matrix P produced by the Floyd–Warshall algorithm.
@@ -269,6 +269,7 @@ def minimum_value_path(i, j, P):
         The ordered list of vertices forming the shortest path from i to j.
         Returns None if no path exists.
     '''
+    i, j = initial_vertex, final_vertex
     # If the distance is INF, no path exists between i and j
     if L[i][j] == INF:
         return None
@@ -293,7 +294,7 @@ def minimum_value_path(i, j, P):
 
 if __name__ == '__main__':
     graph_1_lines = load_txt_file(file_number=3)
-    nb_vertices, nb_arcs, relations = parse_graph_file(graph_1_lines)
+    nb_vertices, nb_arcs, relations = parse_graph_file(lines=graph_1_lines)
     print(nb_vertices, nb_arcs, relations)
     adjacency_matrix_1 = adjacency_matrix(nb_vertices=nb_vertices, relations=relations)
     display_matrix(matrix=adjacency_matrix_1, nb_vertices=nb_vertices)
