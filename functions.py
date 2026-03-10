@@ -4,7 +4,7 @@ import math
 
 INF = math.inf
 
-def load_txt_file(file_number):
+def load_txt_file(file_number) -> list[str]:
     '''
     Load a graph description text file.
 
@@ -23,7 +23,7 @@ def load_txt_file(file_number):
     return lines
 
 
-def parse_graph_file(lines):
+def parse_graph_file(lines) -> tuple[int, int, list[list[int]]]:
     '''
     Reads graph informations and edge relations from each file line.
 
@@ -55,7 +55,7 @@ def parse_graph_file(lines):
     return nb_vertices, nb_arcs, relations
 
 
-def adjacency_matrix(nb_vertices, relations):
+def adjacency_matrix(nb_vertices, relations) -> list[list[int | float]]:
     '''
     Construct the adjacency matrix of a weighted directed graph.
 
@@ -86,7 +86,7 @@ def adjacency_matrix(nb_vertices, relations):
     return matrix
 
 
-def format_row(row, row_head, row_header_width, col_widths):
+def format_row(row, row_head, row_header_width, col_widths) -> str:
     '''
     Format a single row of the adjacency matrix for aligned display.
 
@@ -114,7 +114,7 @@ def format_row(row, row_head, row_header_width, col_widths):
     return "   ".join(parts)
 
 
-def display_matrix(matrix, nb_vertices):
+def display_matrix(matrix, nb_vertices) -> None:
     '''
     Display a formatted adjacency matrix with aligned rows and columns.
 
@@ -156,7 +156,7 @@ def display_matrix(matrix, nb_vertices):
         print(format_row(row=str_matrix[i], row_head=headers[i], row_header_width=row_header_width, col_widths=col_widths))
 
 
-def init_matrixes(matrix, nb_vertices, relations):
+def init_matrixes(matrix, nb_vertices, relations) -> tuple[list[list[int | float]], list[list[int | None]]]:
     '''
     Initialize the distance matrix L and predecessor matrix P used by Floyd–Warshall.
 
@@ -187,7 +187,7 @@ def init_matrixes(matrix, nb_vertices, relations):
     return L, P
 
 
-def floyd_warshall(matrix, nb_vertices, relations):
+def floyd_warshall(matrix, nb_vertices, relations) -> tuple[list[list[int | float]], list[list[int | None]]]:
     '''
     Compute all‑pairs shortest paths using the Floyd–Warshall algorithm.
 
@@ -227,7 +227,7 @@ def floyd_warshall(matrix, nb_vertices, relations):
     return L, P
 
 
-def is_absorbing(L, nb_vertices):
+def is_absorbing(L, nb_vertices) -> bool:
     '''
     Detect whether the graph contains an absorbing circuit
     (negative weight cycle) using the Floyd–Warshall result.
@@ -248,16 +248,16 @@ def is_absorbing(L, nb_vertices):
     return False
 
 
-def minimum_value_path(initial_vertex, final_vertex, P):
+def minimum_value_path(initial_vertex, final_vertex, P) -> list[int] | None:
     '''
     Reconstruct the minimum‑value path from vertex i to vertex j using the
     predecessor matrix P produced by the Floyd–Warshall algorithm.
 
     Parameters
     ----------
-    i : int
+    initial_vertex : int
         Starting vertex.
-    j : int
+    final_vertex : int
         Ending vertex.
     P : list[list[int | None]]
         Predecessor matrix where P[i][j] gives the predecessor of j on the
@@ -293,7 +293,7 @@ def minimum_value_path(initial_vertex, final_vertex, P):
     return list(reversed(path_list))
 
 if __name__ == '__main__':
-    graph_1_lines = load_txt_file(file_number=3)
+    graph_1_lines = load_txt_file(file_number=1)
     nb_vertices, nb_arcs, relations = parse_graph_file(lines=graph_1_lines)
     print(nb_vertices, nb_arcs, relations)
     adjacency_matrix_1 = adjacency_matrix(nb_vertices=nb_vertices, relations=relations)
