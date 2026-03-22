@@ -171,4 +171,3 @@ def menu() -> None :
 
 if __name__ == "__main__":
     menu()
-''' finir le menu, add sous menu comme display les autres sous graphes etc maybe (faire attention aux cas d'erreurs)'''
