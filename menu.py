@@ -2,14 +2,15 @@ from functions import *
 
 def FW_submenu(L, P, nb_vertices):
     while True:
-        print("\n~~~~~~~~~~ FLOYD-WARSHALL SUBMENU ~~~~~~~~~~")
+        print("\n~~~~~~~~~~ FLOYD-WARSHALL SUBMENU ~~~~~~~~~~\n")
         print("1. Display L matrix")
         print("2. Display P matrix")
-        print("3. Back to main menu")
+        print("3. Back to main menu\n")
 
         choice = input("Choose an option between 1 and 3: ")
 
         if choice == '1':
+            print("DEBUG L:", L)
             display_matrix(L, nb_vertices)
         elif choice == '2':
             display_matrix(P, nb_vertices)
@@ -31,13 +32,13 @@ def menu():
     relations = None
 
     while True:
-        print("\n~~~~~~~~~~ GRAPH MENU ~~~~~~~~~~")
+        print("\n~~~~~~~~~~ GRAPH MENU ~~~~~~~~~~\n")
         print("1. Load graph")
         print("2. Display adjacency matrix")
         print("3. Run Floyd-Warshall")
         print("4. Check absorbing circuit")
         print("5. Determine the shortest path")
-        print("6. Exit")
+        print("6. Exit\n")
 
         choice = input("Choose an option between 1 and 6: ")
 
@@ -47,6 +48,8 @@ def menu():
                 file_number = int(input("Enter graph number between 1 and 13: "))
                 lines = load_txt_file(file_number)
                 nb_vertices, nb_arcs, relations = parse_graph_file(lines)
+                print("NB_VERTICES:", nb_vertices)
+                print("RELATIONS:", relations)
                 matrix = adjacency_matrix(nb_vertices, relations)
                 
                 L,P = None, None
@@ -64,13 +67,22 @@ def menu():
                 print("Please load a graph first.")
 
         elif choice == '3':
-            if matrix is not None:
+            if matrix is None:
+                print("Please load a graph first.")
+                continue
+            try:
                 L, P = floyd_warshall(matrix, nb_vertices, relations)
-                print("FW algorithm executed")
+
+                print("\nFINAL L:")
+                display_matrix(L, nb_vertices)
+
+                print("\nFINAL P:")
+                display_matrix(P, nb_vertices)
 
                 FW_submenu(L, P, nb_vertices)
-            else:
-                print("Please load a graph first.")
+
+            except Exception as e:
+                print("ERROR during Floyd-Warshall:", e)
         
         elif choice == '4':
             if L is None:
