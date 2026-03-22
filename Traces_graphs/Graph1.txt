@@ -1,0 +1,84 @@
+Enter graph number between 1 and 13: 1
+NB_VERTICES: 4
+RELATIONS: [[0, 1, 1], [0, 2, 5], [1, 2, 3], [1, 3, 5], [2, 3, 2]]
+Graph loaded
+      0     1     2     3
+0     0     1     5   inf
+1   inf     0     3     5
+2   inf   inf     0     2
+3   inf   inf   inf     0
+
+-- k = 0 --
+L matrix:
+      0     1     2     3
+0     0     1     5   inf
+1   inf     0     3     5
+2   inf   inf     0     2
+3   inf   inf   inf     0
+P matrix:
+       0      1      2      3
+0   None      0      0   None
+1   None   None      1      1
+2   None   None   None      2
+3   None   None   None   None
+
+-- k = 1 --
+L matrix:
+      0     1     2   3
+0     0     1     4   6
+1   inf     0     3   5
+2   inf   inf     0   2
+3   inf   inf   inf   0
+P matrix:
+       0      1      2      3
+0   None      0      1      1
+1   None   None      1      1
+2   None   None   None      2
+3   None   None   None   None
+
+-- k = 2 --
+L matrix:
+      0     1     2   3
+0     0     1     4   6
+1   inf     0     3   5
+2   inf   inf     0   2
+3   inf   inf   inf   0
+P matrix:
+       0      1      2      3
+0   None      0      1      1
+1   None   None      1      1
+2   None   None   None      2
+3   None   None   None   None
+
+-- k = 3 --
+L matrix:
+      0     1     2   3
+0     0     1     4   6
+1   inf     0     3   5
+2   inf   inf     0   2
+3   inf   inf   inf   0
+P matrix:
+       0      1      2      3
+0   None      0      1      1
+1   None   None      1      1
+2   None   None   None      2
+3   None   None   None   None
+
+FINAL L:
+      0     1     2   3
+0     0     1     4   6
+1   inf     0     3   5
+2   inf   inf     0   2
+3   inf   inf   inf   0
+
+FINAL P:
+       0      1      2      3
+0   None      0      1      1
+1   None   None      1      1
+2   None   None   None      2
+3   None   None   None   None
+The graph does not have an absorbing circuit.
+Enter start vertex (0 to 3): 0
+Enter end vertex (0 to 3): 2
+Shortest path: 0 -> 1 -> 2
+Cost: 4

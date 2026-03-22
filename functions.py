@@ -74,15 +74,15 @@ def adjacency_matrix(nb_vertices, relations) -> list[list[int | float]]:
         otherwise 'inf'.
     '''
     # We use INF for non-existant paths because it is considered as an upper bound
-    matrix = [[INF] * nb_vertices for _ in range(nb_vertices)]
+    matrix = [[INF for _ in range(nb_vertices)] for _ in range(nb_vertices)]
     for i in range(nb_vertices):
        matrix[i][i] = 0
     
     # Fill the adjacency matrix with the weights from the relations
     for relation in relations:
         i, j, weight = relation
-        matrix[i][j] = int(weight)
-
+        matrix[i][j] = min(matrix[i][j], weight)
+    
     return matrix
 
 
@@ -109,7 +109,8 @@ def format_row(row, row_head, row_header_width, col_widths) -> str:
     # Right align the row header to the specified width
     parts = [row_head.rjust(row_header_width)]
     # Right align each cell in the row according to the specified column width
-    for col in range(nb_vertices):
+    # use of len(row) instead of nb_vertices to avoid passing nb_vertices as an argument to this function
+    for col in range(len(row)):
         parts.append(str(row[col]).rjust(col_widths[col]))
     return "   ".join(parts)
 
@@ -157,73 +158,80 @@ def display_matrix(matrix, nb_vertices) -> None:
 
 
 def init_matrixes(matrix, nb_vertices, relations) -> tuple[list[list[int | float]], list[list[int | None]]]:
+    ''' Initialize the distance matrix L and predecessor matrix P used by Floyd–Warshall.
+
+        Parameters
+        ----------
+        matrix : list[list[int | float]]
+            The initial adjacency matrix of the graph, where matrix[i][j] contains
+            the weight of the edge i → j, or INF if no edge exists.
+        nb_vertices : int
+            Number of vertices in the graph.
+        relations : list[list[int]]
+            List of edges in the format [source_vertex, destination_vertex, weight].
+
+        Returns
+        -------
+        tuple[list[list[int | float]], list[list[int | None]]]
+            L : the initial distance matrix (same object as `matrix`)
+            P : the predecessor matrix, where P[i][j] = i if an edge i → j exists,
+                otherwise None.
     '''
-    Initialize the distance matrix L and predecessor matrix P used by Floyd–Warshall.
+    # We create a copy of the adjacency matrix to use as the initial distance matrix L
+    L = [row[:] for row in matrix]
+    # We initialize the predecessor matrix P with None, and set P[i][j] = i for each edge i → j in the relations
+    P = [[None for _ in range(nb_vertices)] for _ in range(nb_vertices)]
 
-    Parameters
-    ----------
-    matrix : list[list[int | float]]
-        The initial adjacency matrix of the graph, where matrix[i][j] contains
-        the weight of the edge i → j, or INF if no edge exists.
-    nb_vertices : int
-        Number of vertices in the graph.
-    relations : list[list[int]]
-        List of edges in the format [source_vertex, destination_vertex, weight].
+    # Set P[i][j] = i for each edge i → j in the relations
+    for i in range(nb_vertices):
+        for j in range(nb_vertices):
+            if i != j and matrix[i][j] != INF:
+                P[i][j] = i
 
-    Returns
-    -------
-    tuple[list[list[int | float]], list[list[int | None]]]
-        L : the initial distance matrix (same object as `matrix`)
-        P : the predecessor matrix, where P[i][j] = i if an edge i → j exists,
-            otherwise None.
-    '''
-    L = matrix
-    P = [[None] * nb_vertices for _ in range(nb_vertices)]
-
-    # For each direct edge i → j, the predecessor of j is i
-    for relation in relations:
-        i, j, weight = relation
-        P[i][j] = i
     return L, P
 
 
 def floyd_warshall(matrix, nb_vertices, relations) -> tuple[list[list[int | float]], list[list[int | None]]]:
+    ''' Implementation of the Floyd–Warshall algorithm to compute shortest paths between all pairs of vertices.
+        
+        Parameters
+        ----------
+        matrix : list[list[int | float]]
+            The initial adjacency matrix of the graph, where matrix[i][j] contains
+            the weight of the edge i → j, or INF if no edge exists.
+        nb_vertices : int
+            Number of vertices in the graph.
+        relations : list[list[int]]
+            List of edges in the format [source_vertex, destination_vertex, weight].
+        
+        Returns
+        -------
+        tuple[list[list[int | float]], list[list[int | None]]]
+            L : the final distance matrix, where L[i][j] is the weight of the shortest path from i to j.
+            P : the final predecessor matrix, where P[i][j] gives the predecessor of j
+                on the shortest path from i, or None if no predecessor exists.
     '''
-    Compute all‑pairs shortest paths using the Floyd–Warshall algorithm.
 
-    Parameters
-    ----------
-    matrix : list[list[int | float]]
-        The adjacency matrix of the graph, where matrix[i][j] contains the
-        weight of the edge i → j, or INF if no edge exists.
-    nb_vertices : int
-        Number of vertices in the graph.
-    relations : list[list[int]]
-        List of edges in the format [source_vertex, destination_vertex, weight].
-        Used to initialize the predecessor matrix.
-
-    Returns
-    -------
-    tuple[list[list[int | float]], list[list[int | None]]]
-        L : the matrix of shortest path distances between all pairs of vertices.
-            After execution, L[i][j] contains the minimum cost from i to j.
-        P : the predecessor matrix used to reconstruct shortest paths.
-            P[i][j] gives the predecessor of j on the shortest path from i to j,
-            or None if no path exists.
-    '''
     L, P = init_matrixes(matrix, nb_vertices, relations)
-    
+    # The main loop to check if the path from i to j through k is shorter than the currently known shortest path
     for k in range(nb_vertices):
+        print(f"\n-- k = {k} --")
+        
         for i in range(nb_vertices):
             for j in range(nb_vertices):
-                # Check if path i → k → j is shorter than current i → j (with additional check if initial value is INF and if new values not INF)
-                if ((L[i][j] == INF or 
-                     L[i][j] > (L[i][k] + L[k][j])) 
-                     and (L[i][k] != INF and L[k][j] != INF)):
-                    # Update shortest distance
-                    L[i][j] = L[i][k] + L[k][j]
-                    # Update predecessor: predecessor of j becomes predecessor of k→j
-                    P[i][j] = P[k][j]
+                # We only consider the path through k if both L[i][k] and L[k][j] are not INF
+                if L[i][k] != INF and L[k][j] != INF:
+                    new_dist = L[i][k] + L[k][j]
+                    # If the new distance through k is shorter, we update L[i][j] and set P[i][j] to the predecessor of j on the path from i to k
+                    if new_dist < L[i][j]:
+                        L[i][j] = new_dist
+                        P[i][j] = P[k][j]
+
+        print("L matrix:")
+        display_matrix(L, nb_vertices)
+        print("P matrix:")
+        display_matrix(P, nb_vertices)
+
     return L, P
 
 
@@ -248,7 +256,7 @@ def is_absorbing(L, nb_vertices) -> bool:
     return False
 
 
-def minimum_value_path(initial_vertex, final_vertex, P) -> list[int] | None:
+def minimum_value_path(initial_vertex, final_vertex, P, L) -> list[int] | None:
     '''
     Reconstruct the minimum‑value path from vertex i to vertex j using the
     predecessor matrix P produced by the Floyd–Warshall algorithm.
@@ -292,7 +300,7 @@ def minimum_value_path(initial_vertex, final_vertex, P) -> list[int] | None:
     # Reverse the list to obtain the path from i to j
     return list(reversed(path_list))
 
-if __name__ == '__main__':
+'''if __name__ == '__main__':
     graph_1_lines = load_txt_file(file_number=1)
     nb_vertices, nb_arcs, relations = parse_graph_file(lines=graph_1_lines)
     print(nb_vertices, nb_arcs, relations)
@@ -303,4 +311,4 @@ if __name__ == '__main__':
         print("The graph contains an absorbing circuit.")
     else:
         print("No absorbing circuit detected.")
-        print(minimum_value_path(initial_vertex=0, final_vertex=2, P=P))
+        print(minimum_value_path(initial_vertex=0, final_vertex=2, P=P))'''
