@@ -138,6 +138,9 @@ def menu() -> None :
             if L is None:
                 print("Run Floyd-Warshall first.")
                 continue
+            elif is_absorbing(L, nb_vertices) == True:
+                print("Cannot determine shortest path due to absorbing circuit.")
+                continue
             try:
                 # We ask the user for the start and end vertices, ensuring they are valid integers within the range of vertices
                 i = int(input(f"Enter start vertex (0 to {nb_vertices-1}): "))
